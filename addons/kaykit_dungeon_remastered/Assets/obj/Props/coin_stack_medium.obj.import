@@ -1,0 +1,22 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://q8cpfs465nwn"
+path="res://.godot/imported/coin_stack_medium.obj-f8807c4afa7213971dc35ebd21911b8c.mesh"
+
+[deps]
+
+files=["res://.godot/imported/coin_stack_medium.obj-f8807c4afa7213971dc35ebd21911b8c.mesh"]
+
+source_file="res://addons/kaykit_dungeon_remastered/Assets/obj/Props/coin_stack_medium.obj"
+dest_files=["res://.godot/imported/coin_stack_medium.obj-f8807c4afa7213971dc35ebd21911b8c.mesh", "res://.godot/imported/coin_stack_medium.obj-f8807c4afa7213971dc35ebd21911b8c.mesh"]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+optimize_mesh=true
+force_disable_mesh_compression=false

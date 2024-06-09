@@ -1,0 +1,45 @@
+[gd_scene load_steps=6 format=3 uid="uid://h0objqbhcc7f"]
+
+[ext_resource type="Script" path="res://Scripts/Upgrade.gd" id="1_jk2ur"]
+[ext_resource type="Texture2D" uid="uid://b4036vh65uj0j" path="res://Resources/picking.png" id="2_4xtpu"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a3tot"]
+bg_color = Color(0.951011, 0.725702, 0.279154, 0.0862745)
+
+[sub_resource type="SystemFont" id="SystemFont_mlte0"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_r1ngp"]
+font = SubResource("SystemFont_mlte0")
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+
+[node name="Upgrade" type="Panel"]
+offset_left = 64.0
+offset_top = 21.0
+offset_right = 256.0
+offset_bottom = 149.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_a3tot")
+script = ExtResource("1_jk2ur")
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 0
+offset_left = 128.0
+offset_top = 64.0
+offset_right = 648.0
+offset_bottom = 584.0
+scale = Vector2(0.125, 0.125)
+icon = ExtResource("2_4xtpu")
+flat = true
+
+[node name="BonusText" type="Label" parent="."]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 120.0
+offset_bottom = 120.0
+text = "This is an upgrade that you can pick on level up"
+label_settings = SubResource("LabelSettings_r1ngp")
+autowrap_mode = 3
+
+[connection signal="button_down" from="Button" to="." method="_on_button_button_down"]
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

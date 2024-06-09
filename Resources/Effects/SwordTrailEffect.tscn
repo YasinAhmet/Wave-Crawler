@@ -1,0 +1,38 @@
+[gd_scene load_steps=5 format=3 uid="uid://boqnjb5s0e6ch"]
+
+[ext_resource type="Script" path="res://Resources/Effects/DestroyEffect.gd" id="1_jaysu"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_h3y20"]
+particle_flag_align_y = true
+emission_shape_scale = Vector3(0.001, 1, 0.001)
+emission_shape = 3
+emission_box_extents = Vector3(0.001, 1, 0.001)
+angle_max = 45.0
+direction = Vector3(15, 0, 0)
+spread = 15.0
+initial_velocity_min = -4.0
+initial_velocity_max = -2.0
+gravity = Vector3(0, -0.5, 0)
+damping_max = 1.0
+collision_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uw2c8"]
+transparency = 1
+shading_mode = 2
+albedo_color = Color(0.396078, 0.396078, 0.768627, 0.592157)
+
+[sub_resource type="BoxMesh" id="BoxMesh_grl65"]
+material = SubResource("StandardMaterial3D_uw2c8")
+size = Vector3(0.1, 0.4, 0.01)
+
+[node name="SwordTrailEffect" type="GPUParticles3D"]
+amount = 14
+speed_scale = 2.0
+randomness = 0.5
+fixed_fps = 60
+visibility_aabb = AABB(-3, -1, -1, 6, 2, 2)
+trail_enabled = true
+trail_lifetime = 1.0
+process_material = SubResource("ParticleProcessMaterial_h3y20")
+draw_pass_1 = SubResource("BoxMesh_grl65")
+script = ExtResource("1_jaysu")

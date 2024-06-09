@@ -1,0 +1,14 @@
+[gd_scene load_steps=4 format=3 uid="uid://cdubuxsqa3o6g"]
+
+[ext_resource type="Texture2D" uid="uid://db7eagxy77ux0" path="res://addons/kaykit_dungeon_remastered/Assets/gltf/floor_dirt_large_dungeon_texture.png" id="1_mtd6n"]
+[ext_resource type="ArrayMesh" uid="uid://dqqhby37mj7n2" path="res://addons/kaykit_dungeon_remastered/Assets/obj/Walls/wall_corner.obj" id="2_rbjjj"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vrv2j"]
+albedo_texture = ExtResource("1_mtd6n")
+
+[node name="WallCorner" type="MeshInstance3D"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 0)
+layers = 256
+material_override = SubResource("StandardMaterial3D_vrv2j")
+mesh = ExtResource("2_rbjjj")
+skeleton = NodePath("../..")

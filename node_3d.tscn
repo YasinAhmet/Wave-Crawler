@@ -1,0 +1,456 @@
+[gd_scene load_steps=26 format=3 uid="uid://d0vmhns413h6s"]
+
+[ext_resource type="PackedScene" uid="uid://ra21py0g55rp" path="res://Resources/Prefabs/TestArea.tscn" id="1_qvsou"]
+[ext_resource type="Shader" path="res://addons/GodotRetro/Screen Shaders/Grain.gdshader" id="5_c7vpr"]
+[ext_resource type="PackedScene" uid="uid://wmf2eu0uuhrg" path="res://addons/third-person-camera/third_person_camera/ThirdPersonCamera.tscn" id="5_p8e1f"]
+[ext_resource type="Script" path="res://Scripts/HealthBar.gd" id="6_gn7df"]
+[ext_resource type="Shader" path="res://addons/GodotRetro/Screen Shaders/TV.gdshader" id="8_o4hpv"]
+[ext_resource type="Script" path="res://Scripts/StatTracker.gd" id="9_1i5pv"]
+[ext_resource type="Shader" path="res://addons/GodotRetro/Screen Shaders/Glitch.gdshader" id="9_akak4"]
+[ext_resource type="Script" path="res://Scripts/Pawn_Controller.gd" id="19_bbmoe"]
+[ext_resource type="PackedScene" uid="uid://c5xpjhp3gww6b" path="res://Resources/Prefabs/Pawn.tscn" id="21_5557f"]
+
+[sub_resource type="SystemFont" id="SystemFont_1hex3"]
+
+[sub_resource type="Theme" id="Theme_1oq1j"]
+default_font = SubResource("SystemFont_1hex3")
+default_font_size = 36
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6a70n"]
+bg_color = Color(0.6, 0.6, 0.6, 0.270588)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_48vda"]
+bg_color = Color(5.29438e-07, 0.539052, 0.236195, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(7.09929e-07, 0.39123, 0, 1)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_10rje"]
+sun_angle_max = 72.19
+sun_curve = 0.487351
+
+[sub_resource type="Sky" id="Sky_s7c6w"]
+sky_material = SubResource("ProceduralSkyMaterial_10rje")
+radiance_size = 4
+
+[sub_resource type="Environment" id="Environment_joou2"]
+background_mode = 2
+background_energy_multiplier = 0.8
+background_canvas_max_layer = 135
+sky = SubResource("Sky_s7c6w")
+sky_custom_fov = 10.0
+reflected_light_source = 2
+sdfgi_enabled = true
+sdfgi_use_occlusion = true
+sdfgi_min_cell_size = 0.6
+glow_intensity = 0.91
+glow_bloom = 0.2
+glow_blend_mode = 1
+fog_enabled = true
+fog_light_energy = 2.57
+fog_sun_scatter = 0.35
+fog_density = 0.004
+fog_sky_affect = 0.5
+fog_height = 0.6
+fog_height_density = 0.1325
+
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_aandb"]
+auto_exposure_enabled = true
+auto_exposure_scale = 0.7
+auto_exposure_speed = 0.3
+auto_exposure_min_sensitivity = 200.0
+auto_exposure_max_sensitivity = 1090.0
+
+[sub_resource type="Shader" id="Shader_qiuxb"]
+code = "shader_type spatial;
+render_mode cull_disabled, unshaded;
+uniform sampler2D depth_texture : source_color, hint_depth_texture;
+uniform sampler2D screen_texture : source_color, hint_screen_texture, repeat_disable, filter_nearest;
+
+uniform bool enable_fog = true; 
+uniform vec3 fog_color : source_color;
+uniform vec3 noise_color : source_color;
+uniform float fog_distance : hint_range(1, 6000) = 100;
+uniform float fog_fade_range : hint_range(1, 6000) = 50;
+uniform bool enable_noise = true;
+uniform float noise_time_fac : hint_range(0.1, 10) = 4;
+uniform bool enable_color_limitation = true;
+uniform int color_levels : hint_range(2, 256) = 32;
+uniform bool enable_dithering = true;
+uniform float dither_strength : hint_range(0.0, 1.0) = 0.3; 
+
+float hashOld12(vec2 p){
+	return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453 + (sin((TIME)) / noise_time_fac)) ;
+}
+
+vec3 color_mix(vec3 a, vec3 b, float f ){
+	f = clamp(abs(f), 0,1);
+	float invf = 1.0 - f;
+	return (a*f) + (b*invf);
+}
+
+vec3 quantize_color(vec3 color, int levels) {
+    float quantizer = float(levels - 1);
+    return floor(color * quantizer + 0.5) / quantizer;
+}
+
+float dither(vec2 position, float brightness) {
+    int x = int(mod(position.x, 4.0));
+    int y = int(mod(position.y, 4.0));
+    int index = x + y * 4;
+    float dithering[16] = float[](
+        0.0, 0.5, 0.125, 0.625,
+        0.75, 0.25, 0.875, 0.375,
+        0.1875, 0.6875, 0.0625, 0.5625,
+        0.9375, 0.4375, 1.0, 0.8125
+    );
+    float threshold = dithering[index];
+    return brightness < threshold ? 0.0 : 1.0;
+}
+
+void vertex() {
+  POSITION = vec4(VERTEX, 1.0);
+}
+
+void fragment(){
+	vec3 screen_color = texture(screen_texture, SCREEN_UV).rgb;
+	vec2 screen_coords = SCREEN_UV * 2.0 - 1.0;
+	float depth = texture(depth_texture, SCREEN_UV).x;
+	vec3 ndc = vec3(screen_coords, depth);
+	
+	vec4 view = INV_PROJECTION_MATRIX * vec4(ndc, 1.0);
+	view.xyz /= view.w;
+	
+	float linear_depth = -view.z;
+	
+	float depth_mask_inv = clamp((linear_depth - (fog_distance - fog_fade_range)) / fog_fade_range, 0.0, 1.0);
+	
+	vec3 final_color = screen_color;
+	
+	if (enable_noise){
+		vec3 twocolornoise = color_mix(fog_color, noise_color, hashOld12(screen_coords));
+		final_color = color_mix(twocolornoise, final_color, depth_mask_inv);
+	}
+	if (enable_fog){
+		final_color = color_mix(fog_color, final_color, depth_mask_inv);
+	}
+	if (enable_color_limitation){
+		final_color = quantize_color(final_color, color_levels);
+	}
+	if (enable_dithering){
+		float brightness = dot(final_color, vec3(0.3, 0.59, 0.11));
+		brightness += dither_strength * (dither(FRAGCOORD.xy, brightness) - 0.5);
+		final_color *= (1.0 + dither_strength * (dither(FRAGCOORD.xy, brightness) - 0.5));
+	}
+	ALBEDO = final_color;
+}
+
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2rap5"]
+render_priority = -1
+shader = SubResource("Shader_qiuxb")
+shader_parameter/enable_fog = true
+shader_parameter/fog_color = Color(0.65834, 0.65834, 0.65834, 1)
+shader_parameter/noise_color = Color(0.580392, 0.466667, 0.435294, 1)
+shader_parameter/fog_distance = 15.0
+shader_parameter/fog_fade_range = 5.0
+shader_parameter/enable_noise = true
+shader_parameter/noise_time_fac = 4.0
+shader_parameter/enable_color_limitation = true
+shader_parameter/color_levels = 10
+shader_parameter/enable_dithering = true
+shader_parameter/dither_strength = 0.74
+
+[sub_resource type="QuadMesh" id="QuadMesh_nt8u3"]
+lightmap_size_hint = Vector2i(12, 12)
+material = SubResource("ShaderMaterial_2rap5")
+add_uv2 = true
+size = Vector2(2, 2)
+
+[sub_resource type="LabelSettings" id="LabelSettings_dovmy"]
+font_size = 36
+outline_size = 5
+outline_color = Color(0.0295066, 0.0295066, 0.0295066, 1)
+
+[sub_resource type="GDScript" id="GDScript_48cc1"]
+script/source = "extends Label
+
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_x53km"]
+shader = ExtResource("5_c7vpr")
+shader_parameter/colored = false
+shader_parameter/color_amount = 0.6
+shader_parameter/grain_amount = 0.025
+shader_parameter/grain_size = 1.6
+shader_parameter/lum_amount = 1.3
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hr1br"]
+shader = ExtResource("9_akak4")
+shader_parameter/_ScanLineJitter = 0.25
+shader_parameter/_VerticalJump = 0.01
+shader_parameter/_HorizontalShake = 0.0
+shader_parameter/_ColorDrift = 0.02
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cbrma"]
+shader = ExtResource("8_o4hpv")
+shader_parameter/vertJerkOpt = 0.127
+shader_parameter/vertMovementOpt = 0.0
+shader_parameter/bottomStaticOpt = 0.0
+shader_parameter/bottomStaticStrenth = 0.352
+shader_parameter/scalinesOpt = 0.27
+shader_parameter/rgbOffsetOpt = 0.082
+shader_parameter/horzFuzzOpt = 0.113
+
+[node name="Node3D" type="Node3D"]
+
+[node name="Map" parent="." instance=ExtResource("1_qvsou")]
+
+[node name="Pawn Controller" type="Node3D" parent="."]
+script = ExtResource("19_bbmoe")
+
+[node name="Pawn" parent="Pawn Controller" instance=ExtResource("21_5557f")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
+
+[node name="Skeleton3D" parent="Pawn Controller/Pawn/Knight/Rig" index="0"]
+bones/0/rotation = Quaternion(-1.67351e-08, -0.481441, -2.83254e-08, 0.876478)
+bones/1/position = Vector3(1.25839e-15, 0.431288, -1.25822e-15)
+bones/1/rotation = Quaternion(0.0976067, 0.00651945, 0.0665284, 0.992978)
+bones/2/rotation = Quaternion(0.132513, 0.258395, -0.0533255, 0.955421)
+bones/3/rotation = Quaternion(0.0687906, 0.149826, -0.0612261, 0.984414)
+bones/4/position = Vector3(0.206295, 0.12212, -0.0455417)
+bones/4/rotation = Quaternion(0.551343, 0.493123, 0.658131, -0.14041)
+bones/5/rotation = Quaternion(3.61836e-08, -6.53363e-08, -0.282806, 0.959177)
+bones/7/rotation = Quaternion(-0.247656, -0.339736, -0.245258, 0.873553)
+bones/8/rotation = Quaternion(-0.0627109, -0.091125, -0.308825, 0.944665)
+bones/14/position = Vector3(-0.193134, 0.115529, -0.0419817)
+bones/14/rotation = Quaternion(0.873798, -0.0957486, -0.213152, -0.426468)
+bones/15/rotation = Quaternion(6.16962e-08, 3.84452e-08, 0.727862, 0.685724)
+bones/17/rotation = Quaternion(-0.158864, 0.420518, 0.0489382, 0.891926)
+bones/18/rotation = Quaternion(-0.0391052, -0.0871312, 0.464446, 0.880437)
+bones/21/rotation = Quaternion(-0.11681, -0.126591, -0.0546187, 0.983538)
+bones/24/position = Vector3(0.170945, 0.113587, -0.087576)
+bones/24/rotation = Quaternion(0.993361, -0.0277036, 0.00257389, 0.111628)
+bones/25/rotation = Quaternion(0.658402, 5.46154e-08, -4.26209e-07, 0.752667)
+bones/26/rotation = Quaternion(-0.283241, 0.0357986, 0.0166552, 0.958236)
+bones/27/rotation = Quaternion(2.71862e-08, 0.84372, -0.536784, 6.89267e-08)
+bones/28/position = Vector3(-0.170945, 0.112757, 0.087576)
+bones/28/rotation = Quaternion(0.792289, -0.0409221, -0.024262, 0.608288)
+bones/29/rotation = Quaternion(0.641822, -3.84425e-08, 4.37507e-07, 0.766854)
+bones/30/rotation = Quaternion(-0.603019, -0.00462905, 0.019419, 0.797477)
+bones/31/rotation = Quaternion(3.47141e-08, 0.915662, -0.40195, -7.64686e-08)
+bones/32/position = Vector3(0.170945, 0.333903, 0.617405)
+bones/32/rotation = Quaternion(0.707107, -2.29302e-07, -4.60552e-08, 0.707107)
+bones/33/position = Vector3(0.170945, 0.100412, -0.333039)
+bones/33/rotation = Quaternion(0.0158806, -9.76773e-08, -1.53409e-09, 0.999874)
+bones/34/rotation = Quaternion(6.93889e-15, -3.99529e-17, 1, -9.31323e-10)
+bones/35/rotation = Quaternion(-1.04035e-07, 0.391084, 0.920355, -2.9526e-08)
+bones/37/rotation = Quaternion(1, 1.42692e-08, 1.94958e-07, 1.78687e-09)
+bones/39/position = Vector3(-0.170945, 0.333903, 0.617405)
+bones/39/rotation = Quaternion(0.707107, -3.82385e-08, 1.45009e-07, 0.707107)
+bones/40/position = Vector3(-0.170945, 0.218003, 0.547654)
+bones/40/rotation = Quaternion(-0.789456, -6.82926e-08, -7.22536e-08, 0.613807)
+bones/41/rotation = Quaternion(7.1193e-15, 1.01779e-17, 1, 5.47152e-09)
+bones/42/rotation = Quaternion(-1.04035e-07, 0.391084, 0.920355, -2.95261e-08)
+bones/44/rotation = Quaternion(1, 1.63744e-08, 1.99962e-07, -7.14748e-09)
+bones/46/position = Vector3(0.218104, 0.90572, -0.796413)
+bones/46/rotation = Quaternion(-0.697218, 0.117841, 0.117841, 0.697218)
+bones/47/position = Vector3(0.515964, 0.875973, -0.043944)
+bones/47/rotation = Quaternion(0.754642, 0.464513, 0.438634, 0.149477)
+bones/48/position = Vector3(-1.06212, 0.713856, -0.00404385)
+bones/48/rotation = Quaternion(-0.697218, 0.117841, 0.117841, 0.697218)
+bones/49/position = Vector3(-0.391557, 0.877317, 0.513404)
+bones/49/rotation = Quaternion(0.513029, -0.371838, -0.696466, 0.336858)
+
+[node name="Badge_Shield" parent="Pawn Controller/Pawn/Knight/Rig/Skeleton3D" index="0"]
+transform = Transform3D(0.0350142, -0.448501, 0.893096, 0.998091, 0.0611739, -0.00840914, -0.0508622, 0.891685, 0.449787, 0.406255, 0.782699, 0.612559)
+
+[node name="1H_Sword" parent="Pawn Controller/Pawn/Knight/Rig/Skeleton3D" index="1"]
+transform = Transform3D(0.494888, -0.500691, 0.710206, 0.863471, 0.375044, -0.337283, -0.0974846, 0.780159, 0.617937, -0.752388, 0.800994, 0.0822963)
+
+[node name="Knight_Cape" parent="Pawn Controller/Pawn/Knight/Rig/Skeleton3D" index="2"]
+transform = Transform3D(0.972475, -0.230249, -0.0357326, 0.191877, 0.878352, -0.437814, 0.132192, 0.418908, 0.898355, -0.22029, 1.17342, 0.198418)
+
+[node name="Physical Bone hips" parent="Pawn Controller/Pawn/Knight/Rig/Skeleton3D" index="9"]
+transform = Transform3D(0.531586, -0.816349, 0.225815, 0.133405, -0.182578, -0.974109, 0.836433, 0.547942, 0.0118493, -0.0216754, 0.527644, -0.00113738)
+joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5209e-08, -6.92762e-08, 0.0959872)
+body_offset = Transform3D(1, -3.57628e-07, -8.28877e-08, -2.59839e-07, -2.99886e-07, -1.00001, -2.98023e-08, 1, -5.44824e-08, -3.72529e-08, 0.0959882, 7.45058e-08)
+
+[node name="Physical Bone chest" parent="Pawn Controller/Pawn/Knight/Rig/Skeleton3D" index="10"]
+transform = Transform3D(0.1485, -0.684992, -0.713256, -0.390847, 0.621876, -0.678608, 0.908398, 0.379547, -0.175378, -0.0716054, 1.04627, 0.115123)
+joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.89641e-07, -7.21775e-09, 0.119273)
+body_offset = Transform3D(0.12689, -0.514498, -0.848051, -2.98023e-08, 0.854962, -0.518691, 0.991917, 0.0658168, 0.108487, 0.10115, 0.061866, -0.0129393)
+
+[node name="Physical Bone upperarm_l" parent="Pawn Controller/Pawn/Knight/Rig/Skeleton3D" index="11"]
+transform = Transform3D(-0.448656, 0.390955, -0.803655, -0.093234, 0.87386, 0.477155, 0.888826, 0.289006, -0.355612, 0.164466, 1.17291, 0.217529)
+joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0212712, -0.114325, 0.133867)
+body_offset = Transform3D(0.999892, -0.0090872, 0.0115041, 0.0114489, -0.00607215, -0.999916, 0.00915483, 0.999941, -0.00596711, 0.01869, 0.133405, 0.115312)
+
+[node name="Physical Bone lowerarm_l" parent="Pawn Controller/Pawn/Knight/Rig/Skeleton3D" index="12"]
+transform = Transform3D(-0.841294, 0.453988, -0.293462, 0.29716, 0.841875, 0.450494, 0.451575, 0.291793, -0.843171, 0.295769, 0.948029, 0.583776)
+joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0800881, -0.0850148, 0.375695)
+body_offset = Transform3D(0.995341, -0.062254, -0.0736358, -0.071923, 0.0293483, -0.99698, 0.0642274, 0.99763, 0.0247351, 0.102087, 0.371295, 0.0806643)
+
+[node name="Physical Bone lowerarm_l2" parent="Pawn Controller/Pawn/Knight/Rig/Skeleton3D" index="13"]
+transform = Transform3D(0.128966, 0.882516, 0.452255, 0.987875, -0.0745889, -0.136153, -0.0864241, 0.464332, -0.881435, 0.31416, 0.934363, 0.981703)
+joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0800882, -0.0850144, 0.375695)
+body_offset = Transform3D(0.99534, -0.0622542, -0.0736357, -0.0719218, 0.0293486, -0.996979, 0.0642267, 0.99763, 0.0247343, 0.102087, 0.371295, 0.0806642)
+
+[node name="Physical Bone upperarm_r" parent="Pawn Controller/Pawn/Knight/Rig/Skeleton3D" index="14"]
+transform = Transform3D(0.788936, -0.400075, 0.466391, 0.364532, 0.915745, 0.168901, -0.494667, 0.0367626, 0.868304, -0.229881, 1.00605, 0.017186)
+joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.130693, 0.0910614, 0.00774821)
+body_offset = Transform3D(0.957591, -0.119881, 0.262009, 0.225377, -0.254894, -0.940338, 0.179513, 0.959509, -0.217065, 0.134037, 0.0599522, -0.0622312)
+
+[node name="Physical Bone lowerarm_r" parent="Pawn Controller/Pawn/Knight/Rig/Skeleton3D" index="15"]
+transform = Transform3D(-0.328692, 0.109293, 0.938095, -0.288862, 0.934053, -0.210033, -0.899184, -0.340015, -0.275444, -0.700743, 1.02274, -0.0295666)
+joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0129718, 0.0171578, 0.318641)
+body_offset = Transform3D(0.990785, -0.00831112, 0.135235, 0.116966, -0.451294, -0.884681, 0.0683827, 0.892343, -0.446159, -0.0558011, 0.288122, 0.125967)
+
+[node name="Physical Bone head" parent="Pawn Controller/Pawn/Knight/Rig/Skeleton3D" index="16"]
+transform = Transform3D(-0.951411, -0.297514, -0.0793824, -0.00679682, -0.237446, 0.971377, -0.307848, 0.924718, 0.223887, -0.213639, 1.19046, 0.203023)
+joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.67975e-07, 7.06522e-07, 0.0127622)
+body_offset = Transform3D(-0.999999, 1.78814e-07, -1.8701e-05, -1.86414e-05, -4.45545e-06, 1, 1.19209e-07, 0.999999, 4.18723e-06, 5.06639e-07, -0.0127622, -7.59959e-07)
+
+[node name="Physical Bone upperleg_l" parent="Pawn Controller/Pawn/Knight/Rig/Skeleton3D" index="17"]
+transform = Transform3D(0.517931, 0.845423, 0.130415, 0.103588, -0.21332, 0.971475, 0.849128, -0.489648, -0.198061, 0.073716, 0.331955, 0.200895)
+joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.032398, 0.0547308, 0.273873)
+body_offset = Transform3D(0.999357, 0.0202715, -0.0295951, -0.0352731, 0.405221, -0.913538, -0.00652665, 0.913994, 0.405676, 0.039373, 0.226873, -0.161339)
+
+[node name="Physical Bone upperleg_r" parent="Pawn Controller/Pawn/Knight/Rig/Skeleton3D" index="18"]
+transform = Transform3D(0.553632, 0.825115, 0.112594, 0.0160316, -0.145741, 0.989193, 0.832607, -0.545843, -0.0939149, -0.126463, 0.292085, -0.130085)
+joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00255058, -0.10266, 0.200715)
+body_offset = Transform3D(0.999845, -0.0126671, 0.0122237, 0.0011549, -0.645708, -0.763583, 0.0175655, 0.763479, -0.645594, -0.0012037, 0.0869767, 0.208004)
+
+[node name="Physical Bone upperleg_r2" parent="Pawn Controller/Pawn/Knight/Rig/Skeleton3D" index="19"]
+transform = Transform3D(0.589264, 0.626631, 0.51, 0.803427, -0.387844, -0.451755, -0.0852839, 0.675951, -0.731995, -1.04787, 1.04318, 0.610971)
+joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0480342, -0.0951471, 0.636067)
+body_offset = Transform3D(0.994099, -0.0842382, -0.0683544, -0.0627652, 0.0673133, -0.995756, 0.0884816, 0.994169, 0.0616277, -0.0122878, 0.642787, 0.0511428)
+
+[node name="HitDetector" parent="Pawn Controller/Pawn" index="1"]
+transform = Transform3D(-1, 0, 1.02285e-07, 0, 1, 0, -8.74228e-08, 0, -1.17, 2.62268e-08, 0, -0.3)
+
+[node name="HealthBar" type="ProgressBar" parent="Pawn Controller/Pawn"]
+offset_left = 32.0
+offset_top = 973.0
+offset_right = 513.0
+offset_bottom = 1046.0
+theme = SubResource("Theme_1oq1j")
+theme_override_styles/background = SubResource("StyleBoxFlat_6a70n")
+theme_override_styles/fill = SubResource("StyleBoxFlat_48vda")
+value = 55.0
+script = ExtResource("6_gn7df")
+
+[node name="ThirdPersonCamera" parent="Pawn Controller/Pawn" instance=ExtResource("5_p8e1f")]
+transform = Transform3D(0.3, 8.59436e-09, 2.45115e-09, -6.78801e-09, 0.36689, 0.212968, 8.93658e-10, -0.0983079, 0.794808, 8.74228e-08, 0.176801, -1)
+current = true
+environment = SubResource("Environment_joou2")
+attributes = SubResource("CameraAttributesPractical_aandb")
+
+[node name="RotationPivot" parent="Pawn Controller/Pawn/ThirdPersonCamera" index="0"]
+transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 0.176801, 1)
+
+[node name="OffsetPivot" parent="Pawn Controller/Pawn/ThirdPersonCamera/RotationPivot" index="0"]
+transform = Transform3D(1, -3.9187e-07, 6.47546e-10, 3.9448e-07, 1.00001, 5.65946e-05, -2.27516e-11, -5.80847e-05, 1, 0, 0, 0)
+
+[node name="CameraMarker" parent="Pawn Controller/Pawn/ThirdPersonCamera/RotationPivot/OffsetPivot/CameraSpringArm" index="0"]
+transform = Transform3D(1, 7.66166e-08, 3.50876e-07, 1.27412e-08, 1.00001, 0.000274748, 2.1442e-07, 2.68221e-07, 1.00147, -6.6974e-09, -0.000565931, 9.99999)
+
+[node name="Camera" parent="Pawn Controller/Pawn/ThirdPersonCamera" index="2"]
+transform = Transform3D(1, 6.22296e-15, -1.70974e-14, 0, 0.939693, 0.34202, 1.81947e-14, -0.34202, 0.939693, -1.70974e-13, 3.597, 10.3969)
+environment = SubResource("Environment_joou2")
+attributes = SubResource("CameraAttributesPractical_aandb")
+current = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Pawn Controller/Pawn/ThirdPersonCamera"]
+transform = Transform3D(1, -1.42109e-14, 7.10543e-15, 7.10543e-15, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0.92369, 2.41453, 0.995594)
+visible = false
+mesh = SubResource("QuadMesh_nt8u3")
+skeleton = NodePath("")
+
+[node name="StatsVisualizer" type="Control" parent="Pawn Controller/Pawn/ThirdPersonCamera"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 536.0
+offset_top = 968.0
+offset_right = 1312.0
+offset_bottom = 1064.0
+script = ExtResource("9_1i5pv")
+
+[node name="Damage" type="Label" parent="Pawn Controller/Pawn/ThirdPersonCamera/StatsVisualizer"]
+layout_mode = 0
+offset_left = 352.0
+offset_top = 16.0
+offset_right = 600.0
+offset_bottom = 66.0
+text = "Damage: 10"
+label_settings = SubResource("LabelSettings_dovmy")
+script = SubResource("GDScript_48cc1")
+
+[node name="MaxHealth" type="Label" parent="Pawn Controller/Pawn/ThirdPersonCamera/StatsVisualizer"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 16.0
+offset_right = 268.0
+offset_bottom = 66.0
+text = "Max Health: 10"
+label_settings = SubResource("LabelSettings_dovmy")
+script = SubResource("GDScript_48cc1")
+
+[node name="MovementSpeed" type="Label" parent="Pawn Controller/Pawn/ThirdPersonCamera/StatsVisualizer"]
+layout_mode = 0
+offset_left = 656.0
+offset_top = 16.0
+offset_right = 904.0
+offset_bottom = 66.0
+text = "Movement: 10"
+label_settings = SubResource("LabelSettings_dovmy")
+script = SubResource("GDScript_48cc1")
+
+[node name="Effects" type="Control" parent="Pawn Controller/Pawn/ThirdPersonCamera"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1916.0
+offset_bottom = 1090.0
+mouse_filter = 2
+
+[node name="ColorRect" type="ColorRect" parent="Pawn Controller/Pawn/ThirdPersonCamera/Effects"]
+material = SubResource("ShaderMaterial_x53km")
+layout_mode = 0
+offset_left = -1248.0
+offset_top = -664.0
+offset_right = 3320.0
+offset_bottom = 1648.0
+mouse_filter = 2
+
+[node name="BackBufferCopy2" type="BackBufferCopy" parent="Pawn Controller/Pawn/ThirdPersonCamera/Effects"]
+copy_mode = 2
+
+[node name="ColorRect5" type="ColorRect" parent="Pawn Controller/Pawn/ThirdPersonCamera/Effects"]
+visible = false
+material = SubResource("ShaderMaterial_hr1br")
+layout_mode = 0
+offset_left = -1232.0
+offset_top = -360.0
+offset_right = 3448.0
+offset_bottom = 1496.0
+mouse_filter = 2
+
+[node name="BackBufferCopy" type="BackBufferCopy" parent="Pawn Controller/Pawn/ThirdPersonCamera/Effects"]
+copy_mode = 2
+
+[node name="ColorRect4" type="ColorRect" parent="Pawn Controller/Pawn/ThirdPersonCamera/Effects"]
+material = SubResource("ShaderMaterial_cbrma")
+layout_mode = 0
+offset_left = -1232.0
+offset_top = -360.0
+offset_right = 3448.0
+offset_bottom = 1496.0
+mouse_filter = 2
+
+[connection signal="ready" from="Map" to="Map" method="_on_ready"]
+
+[editable path="Pawn Controller/Pawn"]
+[editable path="Pawn Controller/Pawn/ThirdPersonCamera"]
