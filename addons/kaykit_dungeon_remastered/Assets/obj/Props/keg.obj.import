@@ -1,0 +1,22 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://csrsq4teymnll"
+path="res://.godot/imported/keg.obj-298f6ef43f4b7d009be34eec7e97c045.mesh"
+
+[deps]
+
+files=["res://.godot/imported/keg.obj-298f6ef43f4b7d009be34eec7e97c045.mesh"]
+
+source_file="res://addons/kaykit_dungeon_remastered/Assets/obj/Props/keg.obj"
+dest_files=["res://.godot/imported/keg.obj-298f6ef43f4b7d009be34eec7e97c045.mesh", "res://.godot/imported/keg.obj-298f6ef43f4b7d009be34eec7e97c045.mesh"]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+optimize_mesh=true
+force_disable_mesh_compression=false

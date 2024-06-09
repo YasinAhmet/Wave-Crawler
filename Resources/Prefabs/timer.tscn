@@ -1,0 +1,44 @@
+[gd_scene load_steps=5 format=3 uid="uid://bt3cr5l0myaml"]
+
+[ext_resource type="Script" path="res://Scripts/WaveCountdownTimer.gd" id="1_yxl8r"]
+
+[sub_resource type="SystemFont" id="SystemFont_ef7t5"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_qdyhm"]
+font = SubResource("SystemFont_ef7t5")
+font_size = 76
+font_color = Color(0.923222, 0.0832679, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_wa21f"]
+font_size = 56
+font_color = Color(0.713726, 1, 0.219608, 1)
+
+[node name="WaveTimer" type="Timer"]
+wait_time = 5.0
+one_shot = true
+script = ExtResource("1_yxl8r")
+
+[node name="Label" type="Label" parent="."]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -109.0
+offset_top = 31.0
+offset_right = 109.0
+offset_bottom = 120.0
+grow_horizontal = 2
+text = "00:00"
+label_settings = SubResource("LabelSettings_qdyhm")
+
+[node name="Label2" type="Label" parent="Label"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 107.0
+offset_top = 25.0
+offset_right = 1231.0
+offset_bottom = 130.0
+grow_horizontal = 2
+text = "Press T to skip the preperation"
+label_settings = SubResource("LabelSettings_wa21f")

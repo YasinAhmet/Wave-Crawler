@@ -1,0 +1,77 @@
+[gd_scene load_steps=6 format=3 uid="uid://chigranoef00d"]
+
+[ext_resource type="Script" path="res://Resources/LevelUpScreen.gd" id="1_7cahl"]
+[ext_resource type="PackedScene" uid="uid://h0objqbhcc7f" path="res://Resources/Prefabs/upgrade.tscn" id="2_5so87"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_wrf5c"]
+blend_mode = 1
+
+[sub_resource type="LabelSettings" id="LabelSettings_4g8gu"]
+font_size = 42
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_w4g0q"]
+font_size = 26
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+
+[node name="LevelUpScreen" type="Panel"]
+offset_left = 448.0
+offset_top = 299.0
+offset_right = 1408.0
+offset_bottom = 706.0
+script = ExtResource("1_7cahl")
+
+[node name="Panel2" type="Panel" parent="."]
+material = SubResource("CanvasItemMaterial_wrf5c")
+layout_mode = 0
+offset_left = 568.0
+offset_top = 21.0
+offset_right = 912.0
+offset_bottom = 341.0
+
+[node name="Label" type="Label" parent="Panel2"]
+layout_mode = 0
+offset_left = 80.0
+offset_top = 8.0
+offset_right = 272.0
+offset_bottom = 72.0
+text = "Level Up!"
+label_settings = SubResource("LabelSettings_4g8gu")
+
+[node name="Label2" type="Label" parent="Panel2"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 72.0
+offset_right = 344.0
+offset_bottom = 152.0
+text = "Pick one of these upgrades to continue!"
+label_settings = SubResource("LabelSettings_w4g0q")
+autowrap_mode = 3
+
+[node name="Upgrades" type="Node" parent="."]
+
+[node name="Upgrade" parent="Upgrades" instance=ExtResource("2_5so87")]
+offset_left = 512.0
+offset_top = 320.0
+offset_right = 704.0
+offset_bottom = 448.0
+
+[node name="Upgrade4" parent="Upgrades" instance=ExtResource("2_5so87")]
+offset_left = 768.0
+offset_top = 512.0
+offset_right = 960.0
+offset_bottom = 640.0
+
+[node name="Upgrade3" parent="Upgrades" instance=ExtResource("2_5so87")]
+offset_left = 512.0
+offset_top = 512.0
+offset_right = 704.0
+offset_bottom = 640.0
+
+[node name="Upgrade2" parent="Upgrades" instance=ExtResource("2_5so87")]
+offset_left = 768.0
+offset_top = 320.0
+offset_right = 960.0
+offset_bottom = 448.0

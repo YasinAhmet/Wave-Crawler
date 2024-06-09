@@ -1,0 +1,22 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://1e1pyw3iw0tm"
+path="res://.godot/imported/bed_decorated.obj-08a92e42715b7b8731881fea5e4d3bcc.mesh"
+
+[deps]
+
+files=["res://.godot/imported/bed_decorated.obj-08a92e42715b7b8731881fea5e4d3bcc.mesh"]
+
+source_file="res://addons/kaykit_dungeon_remastered/Assets/obj/Props/bed_decorated.obj"
+dest_files=["res://.godot/imported/bed_decorated.obj-08a92e42715b7b8731881fea5e4d3bcc.mesh", "res://.godot/imported/bed_decorated.obj-08a92e42715b7b8731881fea5e4d3bcc.mesh"]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+optimize_mesh=true
+force_disable_mesh_compression=false

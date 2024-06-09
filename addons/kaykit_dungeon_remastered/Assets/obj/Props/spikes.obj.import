@@ -1,0 +1,22 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://b7upxqtbp747a"
+path="res://.godot/imported/spikes.obj-1027ee14e6f5b8b39060a0b2b9dd9b27.mesh"
+
+[deps]
+
+files=["res://.godot/imported/spikes.obj-1027ee14e6f5b8b39060a0b2b9dd9b27.mesh"]
+
+source_file="res://addons/kaykit_dungeon_remastered/Assets/obj/Props/spikes.obj"
+dest_files=["res://.godot/imported/spikes.obj-1027ee14e6f5b8b39060a0b2b9dd9b27.mesh", "res://.godot/imported/spikes.obj-1027ee14e6f5b8b39060a0b2b9dd9b27.mesh"]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+optimize_mesh=true
+force_disable_mesh_compression=false

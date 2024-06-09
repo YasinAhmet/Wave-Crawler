@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3 uid="uid://ddorwxfdrppok"]
+
+[ext_resource type="Script" path="res://Scripts/RoundManager.gd" id="1_4o8or"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_icpst"]
+font_size = 66
+
+[sub_resource type="SystemFont" id="SystemFont_yfwu0"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_v5bhd"]
+font = SubResource("SystemFont_yfwu0")
+font_size = 46
+font_color = Color(1, 1, 0.564706, 1)
+
+[node name="RoundManager" type="Label"]
+offset_left = 29.0
+offset_top = 20.0
+offset_right = 211.0
+offset_bottom = 84.0
+text = "Round 1
+"
+label_settings = SubResource("LabelSettings_icpst")
+script = ExtResource("1_4o8or")
+
+[node name="LevelLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 67.0
+offset_top = 84.0
+offset_right = 299.0
+offset_bottom = 196.0
+text = "Level 0
+"
+label_settings = SubResource("LabelSettings_v5bhd")

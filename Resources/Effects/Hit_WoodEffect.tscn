@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://b0sfjb3y8hcv6"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_50ipp"]
+particle_flag_align_y = true
+direction = Vector3(0, 15, 0)
+spread = 90.542
+initial_velocity_min = 2.0
+initial_velocity_max = 5.0
+gravity = Vector3(0, -3, 0)
+collision_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_01moa"]
+albedo_color = Color(0.599019, 0.299235, 0.085881, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5fhpw"]
+lightmap_size_hint = Vector2i(19, 26)
+material = SubResource("StandardMaterial3D_01moa")
+size = Vector3(0.05, 0.1, 0.05)
+
+[node name="GPUParticles3D" type="GPUParticles3D"]
+emitting = false
+amount = 36
+lifetime = 3.0
+one_shot = true
+speed_scale = 1.4
+explosiveness = 0.9
+process_material = SubResource("ParticleProcessMaterial_50ipp")
+draw_pass_1 = SubResource("BoxMesh_5fhpw")

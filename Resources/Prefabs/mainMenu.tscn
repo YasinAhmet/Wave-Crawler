@@ -1,0 +1,99 @@
+[gd_scene load_steps=5 format=3 uid="uid://bxd8ks1ls035h"]
+
+[ext_resource type="Script" path="res://Resources/Prefabs/MainMenu.gd" id="1_kqvi7"]
+
+[sub_resource type="Gradient" id="Gradient_b8hn3"]
+interpolation_color_space = 2
+offsets = PackedFloat32Array(0.087963, 0.231481, 0.546296, 0.837963, 0.958333)
+colors = PackedColorArray(1, 1, 1, 0.0313726, 0.72549, 0.72549, 0.72549, 0.807843, 0.341227, 0.341227, 0.341227, 1, 0.341176, 0.341176, 0.341176, 0.556863, 0.341176, 0.341176, 0.341176, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_taf2t"]
+gradient = SubResource("Gradient_b8hn3")
+fill_from = Vector2(0.991453, 1)
+fill_to = Vector2(0, 0)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dtb8c"]
+texture = SubResource("GradientTexture2D_taf2t")
+modulate_color = Color(0.670588, 0.27451, 0, 0.443137)
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_kqvi7")
+
+[node name="Panel2" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -192.0
+offset_top = -348.0
+offset_right = 192.0
+offset_bottom = 292.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_dtb8c")
+
+[node name="Continue" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -128.0
+offset_top = -252.0
+offset_right = 128.0
+offset_bottom = -148.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 56
+text = "Continue"
+
+[node name="Button2" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -76.0
+offset_right = 166.0
+offset_bottom = 28.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 30
+text = "Settings(To be Added)"
+
+[node name="Button3" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -128.0
+offset_top = 44.0
+offset_right = 135.0
+offset_bottom = 148.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 30
+text = "Exit(To be Added)"
+
+[connection signal="focus_entered" from="." to="." method="_on_focus_entered"]
+[connection signal="button_down" from="Continue" to="." method="_on_button_button_down"]
+[connection signal="button_down" from="Continue" to="." method="_on_continue_button_down"]
